@@ -1,4 +1,4 @@
-module github.com/ikeikeikeike/go-sitemap-generator/v2
+module github.com/kaiterra/go-sitemap-generator/v2
 
 go 1.9
 
