@@ -29,10 +29,12 @@ type Attrs []interface{}
 // Attr defines for xml attribute.
 type Attr map[string]string
 
-// URL User should use this typedef in main func.
+// URL stores a single URL in a sitemap, along with all its properties.  It's really a
+// map[string]interface{} where each item in the slice is a key-value pair (that is, it must have exactly 2 elements).
 type URL [][]interface{}
 
-// URLJoinBy that's convenient.
+// URLJoinBy takes the value of the 'key' property and sets it to the concatenated values
+// of all the values of keys listed in 'joins'.
 func (u URL) URLJoinBy(key string, joins ...string) URL {
 	var values []string
 	for _, k := range joins {
@@ -56,30 +58,20 @@ func (u URL) URLJoinBy(key string, joins ...string) URL {
 	return u
 }
 
-// BungURLJoinBy that's convenient. Though, this is Bung method.
+// BungURLJoinBy is an in-place version of URLJoinBy.  I wonder what Bung means.
 func (u *URL) BungURLJoinBy(key string, joins ...string) {
-	orig := *u
+	*u = u.URLJoinBy(key, joins...)
+}
 
-	var values []string
-	for _, k := range joins {
-		var vals interface{}
-		for _, v := range *u {
-			if v[0] == k {
-				vals = v[1]
-				break
-			}
-		}
-		values = append(values, fmt.Sprint(vals))
-	}
-	var index int
-	var v []interface{}
-	for index, v = range *u {
-		if v[0] == key {
-			break
+// Get returns the value at the specified key, if it exists.  This is like map[string]interface{}'s
+// operator [].
+func (u URL) Get(key string) (interface{}, bool) {
+	for _, pairs := range u {
+		if pairs[0] == key {
+			return pairs[1], true
 		}
 	}
-	orig[index][1] = URLJoin("", values...)
-	*u = orig
+	return nil, false
 }
 
 // type News map[string]interface{}

@@ -43,16 +43,6 @@ func (bp *BufferPool) Put(b *bytes.Buffer) {
 func SetBuilderElementValue(elm *etree.Element, data [][]interface{}, basekey string) (*etree.Element, bool) {
 	var child *etree.Element
 
-	key := basekey
-	ts, tk := spaceDecompose(elm.Tag)
-	_, sk := spaceDecompose(elm.Space)
-
-	if elm.Tag != "" && ts != "" && tk != "" {
-		key = fmt.Sprintf("%s:%s", elm.Space, basekey)
-	} else if sk != "" {
-		key = fmt.Sprintf("%s:%s", sk, basekey)
-	}
-
 	var values interface{}
 	var found bool
 	for _, v := range data {
@@ -64,6 +54,22 @@ func SetBuilderElementValue(elm *etree.Element, data [][]interface{}, basekey st
 	}
 	if !found {
 		return child, false
+	}
+
+	// When using *Sitemap, basekey must be one of the fields of struct URLModel.  So, this is a hack
+	// to allow alternate URLs, which are under the <xhtml:link> tag, to be specified
+	if basekey == "alternates" {
+		basekey = "xhtml:link"
+	}
+
+	key := basekey
+	ts, tk := spaceDecompose(elm.Tag)
+	_, sk := spaceDecompose(elm.Space)
+
+	if elm.Tag != "" && ts != "" && tk != "" {
+		key = fmt.Sprintf("%s:%s", elm.Space, basekey)
+	} else if sk != "" {
+		key = fmt.Sprintf("%s:%s", sk, basekey)
 	}
 
 	switch value := values.(type) {

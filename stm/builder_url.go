@@ -109,6 +109,23 @@ func (su *sitemapURL) XML() []byte {
 		priority := url.CreateElement("priority")
 		priority.SetText("0.5")
 	}
+
+	// If there are any alternate URLs, prefix them with the host
+	host, _ := su.data.Get("host")
+	for _, pairs := range su.data {
+		if pairs[0] == "alternates" {
+			value := pairs[1]
+			if attrs, ok := value.([]Attr); ok {
+				for _, attr := range attrs {
+					attr["href"] = URLJoin(host.(string), attr["href"])
+				}
+			}
+
+			break
+		}
+	}
+	SetBuilderElementValue(url, su.data, "alternates")
+
 	SetBuilderElementValue(url, su.data, "expires")
 	SetBuilderElementValue(url, su.data, "mobile")
 	SetBuilderElementValue(url, su.data, "news")

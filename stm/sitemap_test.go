@@ -2,6 +2,7 @@ package stm
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -22,6 +23,16 @@ func TestSitemapGenerator(t *testing.T) {
 		sm.Add(URL{{"loc", "readme"}, {"lastmod", "2018-10-28T17:56:02+09:00"}})
 		sm.Add(URL{{"loc", "aboutme"}, {"priority", 0.1}, {"lastmod", "2018-10-28T17:56:02+09:00"}})
 	}
+	sm.Add(URL{
+		{"loc", "alternates"},
+		{"lastmod", "2018-10-28T17:56:02+09:00"},
+		{"priority", nil},
+		{"alternates", []Attr{
+			// mxj's NewMapXml (used to check the result) can't deal with two child tags with the same name,
+			// so we only write one of these
+			{"rel": "alternate", "hreflang": "de", "href": "/deutsch/page.html"},
+			// {"rel": "alternate", "hreflang": "en", "href": "/english/page.html"},
+		}}})
 	sm.Finalize()
 
 	buffers := buf.Bytes()
@@ -241,6 +252,15 @@ func TestSitemapGenerator(t *testing.T) {
 	  <changefreq>weekly</changefreq>
 	  <priority>0.1</priority>
 	</url>
+	<url>
+	  <loc>http://www.example.com/alternates</loc>
+	  <lastmod>2018-10-28T17:56:02+09:00</lastmod>
+	  <changefreq>weekly</changefreq>
+	  <xhtml:link
+	    rel="alternate"
+	    hreflang="de"
+	    href="http://www.example.com/deutsch/page.html"/>
+  </url>
 	</urlset>
 	`)
 
@@ -249,6 +269,6 @@ func TestSitemapGenerator(t *testing.T) {
 
 	if !reflect.DeepEqual(mdata, mexpect) {
 		t.Error(`Failed to generate dataindex`)
+		fmt.Printf("%s\n", data)
 	}
-
 }
